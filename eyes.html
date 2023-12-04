@@ -1,0 +1,11 @@
+<pre id="id" style="font-size: 20em"><_<</pre>
+<script>
+  const frames = ["<_<", "^_^", ">_>", "v_v"]
+  let i = 0;
+  setInterval(
+    function() {
+      document.getElementById("id").innerHTML=frames[i++%frames.length]
+    },
+    1000
+  )
+</script>
