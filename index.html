@@ -1,10 +1,105 @@
+<!DOCTYPE html>
 <html>
+  <head>
+    <style>
+     body {
+         margin:0;
+         padding:0;
+         background: #777;
+     }
+    </style>
+  </head>
+
   <body>
-    <section>
-      <p>2025-06-24T11:08:18-0700</p>
-      <p>
-        listening to <a href="https://archive.org/details/OTE_19961124_Another_UFO_-_Mr._X">Another UFO - Mr. X</a>
-      </p>
-    </section>
+    
+    <canvas id="backgroundCanvas" width="500" height="500"></canvas>
+    <canvas id="overlayCanvas" width="500" height="500" style="position: absolute; top: 0; left: 0;"></canvas>
+
+    <script>
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      document.getElementById("backgroundCanvas").width = width;
+      document.getElementById("backgroundCanvas").height = height;
+      document.getElementById("overlayCanvas").width = width;
+      document.getElementById("overlayCanvas").height = height;
+
+      function noise(ctx, width, height) {
+        const imageData = ctx.createImageData(width, height);
+        const pixels = imageData.data;
+
+        for (let i = 0; i < pixels.length; i += 4) {
+          let rand = Math.random() * 255;
+          //const value = Math.random() * 255;
+          pixels[i + 0] = rand;
+          //pixels[i + 1] = rand;
+          pixels[i + 2] = Math.random() * 100;;
+          pixels[i + 3] = 255;
+        }
+        return imageData
+      }
+      
+      const bgCanvas = document.getElementById("backgroundCanvas");
+      const bgCtx = bgCanvas.getContext("2d");
+
+      const overlayCanvas = document.getElementById("overlayCanvas");
+      const overlayCtx = overlayCanvas.getContext("2d");
+
+      // Draw something on the background canvas
+      //bgCtx.fillStyle = "blue";
+      // bgCtx.fillRect(0, 0, 500, 500);
+
+      // Create an offscreen canvas for the mask
+      const maskCanvas = document.createElement("canvas");
+      maskCanvas.width = width;
+      maskCanvas.height = height;
+      const maskCtx = maskCanvas.getContext("2d");
+
+      // Draw a circular mask
+      maskCtx.fillStyle = "black";
+      maskCtx.fillRect(0, 0, width, height);
+      maskCtx.globalCompositeOperation = "destination-out"; // Makes white areas transparent
+      maskCtx.beginPath();
+      maskCtx.arc(width/2, height/2, 100, 0, Math.PI * 2);
+      maskCtx.fill();
+
+      // Draw something on the overlay canvas
+      //overlayCtx.fillStyle = "red";
+      //overlayCtx.fillRect(0, 0, 500, 500);
+      let tick = 0;
+
+      bgCtx.putImageData(noise(bgCtx, width, height), 0, 0)
+      overlayCtx.putImageData(noise(overlayCtx, width, height), 0, 0)
+
+      function frame() {
+        tick++;
+
+        if (tick % 10 == 0) {
+//          bgCtx.putImageData(noise(bgCtx, width, height), 0, 0)
+        }
+
+        overlayCtx.putImageData(noise(overlayCtx, width, height), 0, 0)
+
+        scroll(maskCtx, 2)
+        scroll(bgCtx, 10)
+
+        overlayCtx.globalCompositeOperation = "destination-in";
+        overlayCtx.drawImage(maskCanvas, 0, 0);
+
+        requestAnimationFrame(frame); // Loop
+      }
+      frame()
+
+
+      function scroll(ctx, slice) {
+        const imageData = ctx.getImageData(slice, 0, width - slice, height); // Get all except leftmost column
+        ctx.putImageData(imageData, 0, 0); // Move it 1px left
+        const wrapData = ctx.getImageData(0, 0, slice, height);
+        ctx.putImageData(wrapData, width - slice, 0);
+      }
+
+    </script>
+
+
   </body>
 </html>
